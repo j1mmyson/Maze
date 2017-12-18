@@ -1,43 +1,57 @@
 #include <stdio.h>
-#include <string.h>
 #include <termio.h>
 #include <stdlib.h>
-#include <termios.h>
 #include <unistd.h>
 #include <time.h>
+#include <string.h>
 int getch(void);
+int flag;
 struct Player{
     char name[20];
-    int x;
-    int y;
-    int stage;
-};
-int boss(struct Player p);//Boss Stage.exe
+    double score;
+}per[10],p,p2;
+    struct xy{
+        int x;
+        int y;
+    }XY,XY2;
+void LoadPlayer();
+void sortsaveboard();
+void printboard();
+int boss();//Boss Stage.exe
 void bossmap(char map[40][40]);//Boss map
 void start();
-int map2(struct Player p);//mola;
-int blindmaze(struct Player p);//1stage.exe
+int map2();//mola;
+int blindmaze();//1stage.exe
 void blindmap(char map[20][20]);//1stage map
-int stage2(struct Player p,struct Player p2);//2stage.exe
+int stage2();//2stage.exe
 void main(){
-    struct Player p,p2;
+
     
     char cmd;
     int pick;
     int stage1;
     int bossstage;
+    LoadPlayer();
     intro:
     system("clear");
-    p.x=1;
-    p.y=1;
-    p2.x=1;
-    p2.y=20;
+    XY.x=1;
+    XY.y=1;
+    XY2.x=1;
+    XY2.y=20;
+    p.score=0;
     
     fflush(stdin);
     start();
     pick=getch();
     if(pick=='x'){
         goto end ;
+    }
+    else if(pick=='z'){
+        system("clear");
+        printboard();
+        printf("\n\n             press any button to quit\n");
+        pick=getch();
+        goto intro;
     }
     printf("\n                   Your Name:");
     scanf("%s",p.name);
@@ -57,18 +71,22 @@ void main(){
     printf("                    ##########################\n");
     sleep(1);
     printf("Player : %s \n\n\n",p.name);
-    stage1=blindmaze(p);//blindmaze fin
+    stage1=blindmaze();//blindmaze fin
     if(stage1==1)
         goto intro;
-    stage2(p,p2);//stage2 게임 끝
-    bossstage=boss(p);
+    stage2();//stage2 게임 끝
+    bossstage=boss();
     if(bossstage==1)
         goto intro;
    end:
    sleep(1);
    system("clear");
-   printf("                              Good bye\n ");
-   sleep(3);
+   printf("\n\n\n\n                              The End\n ");
+
+    sleep(3);
+    system("clear");
+    sortsaveboard();
+    printboard();
 }//main끝
 
 int getch(void){//getch함수
@@ -99,15 +117,18 @@ void start(){
     printf("                                 UP:W                                            \n\n");
     printf("                    LEFT:A                RIGHT:D\n\n");
     printf("                                DOWN:S \n");
-    printf("\n\n\n                  Press any button (press 'x' to Exit)");
+    printf("\n\n\n                  Press any button (press 'x' to Exit)\n");
+    printf("                           z:view leaderboard\n");
 }
-int blindmaze(struct Player p){//재형이가 만든게임
+int blindmaze(){//재형이가 만든게임
     system("clear");
+    double realc=0;
     int i,j,exit=0,mc=0;
     int count,count_cmd=0,cn;
     char map[20][20],cmd;
     char space=' ';
-    p.x=p.y=2;
+    char pick;
+    XY.x=XY.y=2;
     blindmap(map);
     map[16][15]='&';//finish point
 
@@ -117,10 +138,16 @@ int blindmaze(struct Player p){//재형이가 만든게임
     printf("       I.Memorize maze for 10 second and Go to &\n");
     printf("       II.You can't pass the wall (#,@) \n");
     printf("       III.If you don't escape this maze for 100moves you will die!\n");
-    sleep(6);
+    printf("             Are you Ready? Press 'g' to start!\n");
+    pick=getch();
+    while(pick!='g'){
+
+        pick=getch();
+    }
+    
     system("clear");
     printf("Player : %s\n",p.name);
-    map[p.x][p.y]='P';
+    map[XY.x][XY.y]='P';
         for(i=0;i<20;i++){
             for(j=0;j<20;j++){
                 printf("%2c",map[i][j]);
@@ -129,9 +156,10 @@ int blindmaze(struct Player p){//재형이가 만든게임
         }
         sleep(5);
         while(1){
-            map[p.x][p.y]='P';
+            map[XY.x][XY.y]='P';
             system("clear");
-            printf("Player : %s \n\n\n",p.name);
+            printf("Player : %s \n ",p.name);
+            printf("Score : %.1f \n\n\n",70+(100-2*realc)*0.3);
             for(i=0;i<20;i++){
                 for(j=0;j<20;j++){
                     if((2<=i&&i<=17)&&(2<=j&&j<=17)){
@@ -148,39 +176,51 @@ int blindmaze(struct Player p){//재형이가 만든게임
             cmd=getch();
             switch(cmd){
                 case 'w':
-                    if(p.x!=1&& map[p.x-1][p.y] != '#'&&map[p.x-1][p.y]!='@'){
+                    if(XY.x!=1&& map[XY.x-1][XY.y] != '#'&&map[XY.x-1][XY.y]!='@'){
                         count_cmd ++;
-                        map[p.x][p.y]=' ';
-                        p.x --;
+                        if(count_cmd>80){
+                            realc =realc+2;
+                        }
+                        map[XY.x][XY.y]=' ';
+                        XY.x --;
                     }
-                    else map[p.x-1][p.y]='@';
+                    else map[XY.x-1][XY.y]='@';
                     break;
                 case 'a':
-                    if(p.y!=1 && map[p.x][p.y-1]!= '#'&&map[p.x][p.y-1]!='@'){
+                    if(XY.y!=1 && map[XY.x][XY.y-1]!= '#'&&map[XY.x][XY.y-1]!='@'){
                         count_cmd ++;
-                        map[p.x][p.y]=' ';
-                        p.y --;
+                        if(count_cmd>80){
+                            realc=realc+2;
+                        }
+                        map[XY.x][XY.y]=' ';
+                        XY.y --;
                     }
                     else
-                        map[p.x][p.y-1]='@';
+                        map[XY.x][XY.y-1]='@';
                     break;
                 case 's':
-                    if(p.x != 18 && map[p.x+1][p.y]!= '#'&&map[p.x+1][p.y]!= '@'){
+                    if(XY.x != 18 && map[XY.x+1][XY.y]!= '#'&&map[XY.x+1][XY.y]!= '@'){
                         count_cmd ++;
-                        map[p.x][p.y]=' ';
-                        p.x ++;
+                        if(count_cmd>80){
+                            realc=realc+2;
+                        }
+                        map[XY.x][XY.y]=' ';
+                        XY.x ++;
                     }
                     else
-                        map[p.x+1][p.y]='@';
+                        map[XY.x+1][XY.y]='@';
                     break;
                 case 'd':
-                    if(p.y!= 18 && map[p.x][p.y+1]!='#'&&map[p.x][p.y+1]!='@'){
+                    if(XY.y!= 18 && map[XY.x][XY.y+1]!='#'&&map[XY.x][XY.y+1]!='@'){
                         count_cmd ++;
-                        map[p.x][p.y]=' ';
-                        p.y ++;
+                        if(count_cmd>80){
+                            realc=realc+2;
+                        }
+                        map[XY.x][XY.y]=' ';
+                        XY.y ++;
                     }
                     else
-                        map[p.x][p.y+1]='@';
+                        map[XY.x][XY.y+1]='@';
                     break;
             }
             if(count_cmd>100){
@@ -188,16 +228,12 @@ int blindmaze(struct Player p){//재형이가 만든게임
                 sleep(3);
                 return 1;
             }
-            if(p.x==16 &&p.y==15){
+            if(XY.x==16 &&XY.y==15){
+                XY.x=XY.y=1;
+                p.score=(100-(2*realc))*0.3;
                 map[16][15]='P';
                 map[17][15]=' ';
                 system("clear");
-                for(i=0;i<20;i++){
-                    for(j=0;j<20;j++){
-                        printf("%2c",map[i][j]);
-                    }
-                    printf("\n");
-                }
             return 0;
             }
         }
@@ -234,10 +270,12 @@ map[2][3]='#',map[2][16]='#',map[2][17]='#';
     map[16][8]='#',map[16][9]='#',map[16][11]='#',map[16][12]='#',map[16][13]='#',map[16][14]='#',map[16][16]='#';
     map[17][4]='#',map[17][6]='#',map[17][14]='#';
 };//블라인드메이즈 맵 완성
-int stage2(struct Player p,struct Player p2){//병욱이가 만든 게임
+int stage2(){//병욱이가 만든 게임
     char map[20][40];
+    double count_cmd=0;
     int i,j;
     char cmd;
+    char pick;
     for(i=0;i<20;i++){
         for(j=0;j<40;j++){
             map[i][j]=' ';
@@ -266,13 +304,19 @@ int stage2(struct Player p,struct Player p2){//병욱이가 만든 게임
     printf("            You can't stop 'P' until you hit the wall!\n");
     printf("           I.'P' and 'D' move at a time\n");
     printf("          II.Take 'P'and'D' to &!!\n");
-    sleep(8);
 
+    printf("             Are you Ready? Press 'g' to start!\n");
+    pick=getch();
+    while(pick!='g'){
+
+        pick=getch();
+    }
     while(1){
         system("clear");
-        printf("Player : %s \n\n\n",p.name);
-        map[p.x][p.y]='P';
-        map[p2.x][p2.y]='D';
+        printf("Player : %s ",p.name);
+        printf("Score : %.1f\n\n\n",40+p.score+(100-count_cmd)*0.3);
+        map[XY.x][XY.y]='P';
+        map[XY2.x][XY2.y]='D';
         map[18][18]='&';
         map[18][38]='&';
         for(i=0;i<20;i++){
@@ -282,71 +326,77 @@ int stage2(struct Player p,struct Player p2){//병욱이가 만든 게임
             }
             printf("\n");
         }//맵 출력
-        if(p.x==18&&p.y==18&&p2.x==18&&p2.y==38){//클리어 조건
+        if(XY.x==18&&XY.y==18&&XY2.x==18&&XY2.y==38){//클리어 조건
             system("clear");
-            p.x=1,p.y=1;
-            p2.x=1,p2.y=19;
+            XY.x=1,XY.y=1;
+            XY2.x=1,XY2.y=19;
             sleep(1);
+            p.score=p.score+(100-count_cmd)*0.3;
             return 0;
         }
         cmd=getch();
 
         switch(cmd){
             case 'w':
-                if(p.x!=1&&map[p.x-1][p.y]!='#'){
-                    map[p.x][p.y]=' ';
-                    while(map[p.x-1][p.y]!='#'){
-                        p.x--;
+                if(XY.x!=1&&map[XY.x-1][XY.y]!='#'){
+                    map[XY.x][XY.y]=' ';
+                    while(map[XY.x-1][XY.y]!='#'){
+                        XY.x--;
                     }
                 }
-                if(p2.x!=1&&map[p2.x-1][p2.y]!='#'){
-                    map[p2.x][p2.y]=' ';
-                    while(map[p2.x-1][p2.y]!='#'){
-                        p2.x--;
+                if(XY2.x!=1&&map[XY2.x-1][XY2.y]!='#'){
+                    map[XY2.x][XY2.y]=' ';
+                    while(map[XY2.x-1][XY2.y]!='#'){
+                        XY2.x--;
                     }
                 }
+                count_cmd ++;
                 break;
             case 'a':
-               if(p.y!=1&&map[p.x][p.y-1]!='#'){
-                   map[p.x][p.y]=' ';
-                    while(map[p.x][p.y-1]!='#'){
-                        p.y--;
+               if(XY.y!=1&&map[XY.x][XY.y-1]!='#'){
+                   map[XY.x][XY.y]=' ';
+                    while(map[XY.x][XY.y-1]!='#'){
+                        XY.y--;
+                    }
+                    
+               }
+               if(XY2.y!=1&&map[XY2.x][XY2.y-1]!='#'){
+                   map[XY2.x][XY2.y]=' ';
+                    while(map[XY2.x][XY2.y-1]!='#'){
+                        XY2.y--;
                     }
                }
-               if(p2.y!=1&&map[p2.x][p2.y-1]!='#'){
-                   map[p2.x][p2.y]=' ';
-                    while(map[p2.x][p2.y-1]!='#'){
-                        p2.y--;
-                    }
-               }
-                break;
+               count_cmd ++;
+               break;
              case 's':
-                 if(p.x!=18&&map[p.x+1][p.y]!='#'){
-                     map[p.x][p.y]=' ';
-                      while(map[p.x+1][p.y]!='#'){
-                        p.x++;
+                 if(XY.x!=18&&map[XY.x+1][XY.y]!='#'){
+                     map[XY.x][XY.y]=' ';
+                      while(map[XY.x+1][XY.y]!='#'){
+                        XY.x++;
                       }
                  }
-                 if(p2.x!=18&&map[p2.x+1][p2.y]!='#'){
-                     map[p2.x][p2.y]=' ';
-                      while(map[p2.x+1][p2.y]!='#'){
-                        p2.x++;
+                 if(XY2.x!=18&&map[XY2.x+1][XY2.y]!='#'){
+                     map[XY2.x][XY2.y]=' ';
+                      while(map[XY2.x+1][XY2.y]!='#'){
+                        XY2.x++;
                       }
                  }
-                break;
+                 count_cmd ++;
+                 break;
             case 'd':
-                if(p.y!=18&&map[p.x][p.y+1]!='#'){
-                    map[p.x][p.y]=' ';
-                    while(map[p.x][p.y+1]!='#'){
-                        p.y++;
+                if(XY.y!=18&&map[XY.x][XY.y+1]!='#'){
+                    map[XY.x][XY.y]=' ';
+                    while(map[XY.x][XY.y+1]!='#'){
+                        XY.y++;
                     }
                 }
-                if(p2.y!=18&&map[p2.x][p2.y+1]!='#'){
-                    map[p2.x][p2.y]=' ';
-                    while(map[p2.x][p2.y+1]!='#'){
-                        p2.y++;
+                if(XY2.y!=18&&map[XY2.x][XY2.y+1]!='#'){
+                    map[XY2.x][XY2.y]=' ';
+                    while(map[XY2.x][XY2.y+1]!='#'){
+                        XY2.y++;
                     }
                 }
+                count_cmd ++;
                 break;
         }//플레이어 이동
     }
@@ -364,7 +414,7 @@ void bossmap(char map[40][40]){
     }
 
 }
-int boss(struct Player p){
+int boss(){
     char map[40][40];
     int key=0;
     int mx[3];
@@ -373,6 +423,7 @@ int boss(struct Player p){
     int life=3;
     char space=' ';
     char cmd;
+    char pick;
     system("clear");
     bossmap(map);
     printf("\n\n\n\n");
@@ -380,10 +431,16 @@ int boss(struct Player p){
     printf("            You are in the dark maze with a candle !\n");
     printf("       I.Collect 3 key(*) as avoiding monster (M)!!!!\n");
     printf("       II.If you collect 3 keys go to & to escape this maze! \n");
-    sleep(8);
-    p.x=p.y=1;
     
-    map[p.x][p.y]='P';
+    printf("             Are you Ready? Press 'g' to start!\n");
+    pick=getch();
+    while(pick!='g'){
+
+        pick=getch();
+    }
+    XY.x=XY.y=1;
+    
+    map[XY.x][XY.y]='P';
     for(i=0;i<300;i++){
             
         map[rand()%38+2][rand()%40]='#';
@@ -413,11 +470,13 @@ int boss(struct Player p){
         while(1){
 
             if(key==3){
-                if(map[p.x][p.y]=='&'){
+                if(map[XY.x][XY.y]=='&'){
+                    p.score=p.score+(life*33)*0.4;
                     system("clear");
                     printf("\n\n\n\n\n");
                     printf("                         Congratulation!!\n");
                     printf("                     You escape all of this maze!\n");
+                    printf("                           Your Score:%.1f \n",p.score);
                     sleep(5);
                     return 0;
                 }
@@ -433,16 +492,13 @@ int boss(struct Player p){
             map[mx[1]][my[1]]='M';
             map[mx[2]][my[2]]='M';
             for(i=0;i<3;i++){
-                if(map[p.x][p.y]==map[mx[i]][my[i]]){
-                    p.x=p.y=1;
+                if(map[XY.x][XY.y]==map[mx[i]][my[i]]){
+                    XY.x=XY.y=1;
                     life--;
                 }
             }
-            map[p.x][p.y]='P';
+            map[XY.x][XY.y]='P';
             system("clear");
-            for(i=0;i<3;i++){
-            printf("m1x:%d m2x:%d \n",mx[i],my[i]);
-            }
             printf("Player : %s\n",p.name);
             printf("Life : ");
             for(i=0;i<life;i++)
@@ -453,7 +509,7 @@ int boss(struct Player p){
                     if(i==0||i==39||j==0||j==39){
                         printf("%2c",map[i][j]);
                     }
-                    else if((p.x-i)*(p.x-i)+(p.y-j)*(p.y-j)<25){
+                    else if((XY.x-i)*(XY.x-i)+(XY.y-j)*(XY.y-j)<25){
                         printf("%2c",map[i][j]);
                     }
                     else
@@ -464,54 +520,54 @@ int boss(struct Player p){
             cmd=getch();
             switch(cmd){
                 case 'w':
-                    if(p.x!=1&& map[p.x-1][p.y] != '#'){
-                        if(map[p.x-1][p.y]=='*')
+                    if(XY.x!=1&& map[XY.x-1][XY.y] != '#'){
+                        if(map[XY.x-1][XY.y]=='*')
                             key++;
-                        map[p.x][p.y]=' ';
-                        p.x --;
+                        map[XY.x][XY.y]=' ';
+                        XY.x --;
                     }
                     break;
                 case 'a':
-                    if(p.y!=1 && map[p.x][p.y-1]!= '#'){
-                        if(map[p.x][p.y-1]=='*')
+                    if(XY.y!=1 && map[XY.x][XY.y-1]!= '#'){
+                        if(map[XY.x][XY.y-1]=='*')
                             key++;
-                        map[p.x][p.y]=' ';
-                        p.y --;
+                        map[XY.x][XY.y]=' ';
+                        XY.y --;
                     }
                     break;
                 case 's':
-                    if(p.x != 39 && map[p.x+1][p.y]!= '#'){
-                        if(map[p.x+1][p.y]=='*')
+                    if(XY.x != 39 && map[XY.x+1][XY.y]!= '#'){
+                        if(map[XY.x+1][XY.y]=='*')
                             key++;
-                        map[p.x][p.y]=' ';
-                        p.x ++;
+                        map[XY.x][XY.y]=' ';
+                        XY.x ++;
                     }
                     break;
                 case 'd':
-                    if(p.y!= 39 && map[p.x][p.y+1]!='#'){
-                        if(map[p.x][p.y+1]=='*')
+                    if(XY.y!= 39 && map[XY.x][XY.y+1]!='#'){
+                        if(map[XY.x][XY.y+1]=='*')
                             key++;
-                        map[p.x][p.y]=' ';
-                        p.y ++;
+                        map[XY.x][XY.y]=' ';
+                        XY.y ++;
                     }
                     break;
             }// moving
             for(i=0;i<3;i++){
-                if((p.x-mx[i])*(p.x-mx[i])+(p.y-my[i])*(p.y-my[i])<16){
-                   if(p.x>mx[i]&&map[mx[i]+1][my[i]]!='#'){
+                if((XY.x-mx[i])*(XY.x-mx[i])+(XY.y-my[i])*(XY.y-my[i])<16){
+                   if(XY.x>mx[i]&&map[mx[i]+1][my[i]]!='#'){
                         map[mx[i]][my[i]]=' ';
                         mx[i]++;
 
                    }
-                   else if(p.y>my[i] && map[mx[i]][my[i]+1]!='#'){
+                   else if(XY.y>my[i] && map[mx[i]][my[i]+1]!='#'){
                         map[mx[i]][my[i]]=' ';
                         my[i]++;
                    }
-                   else if(p.x<mx[i] && map[mx[i]-1][my[i]]!='#'){
+                   else if(XY.x<mx[i] && map[mx[i]-1][my[i]]!='#'){
                         map[mx[i]][my[i]]=' ';
                         mx[i]--;
                    }
-                   else if(p.y<my[i] && map[mx[i]][my[i]-1]!='#'){
+                   else if(XY.y<my[i] && map[mx[i]][my[i]-1]!='#'){
                        map[mx[i]][my[i]]=' ';
                        my[i]--;
                    }
@@ -530,4 +586,61 @@ int boss(struct Player p){
 
 
 
+}
+void LoadPlayer(){
+    int i=0;
+    FILE *fp = fopen("leaderboard.txt","r+");
+
+    if(fp==NULL){
+        printf("Data Load Fail\n");
+        return;
+    }
+    while(1){
+        fscanf(fp,"%s %lf",per[i].name,&per[i].score);
+
+    if(per[i].score==0){
+        flag=i;
+        break;
+    }
+    i++;
+    }
+    fclose(fp);
+}
+
+void sortsaveboard(){
+    strcpy(per[flag].name,p.name);
+    per[flag].score=p.score;
+
+    for(int i=0;i<flag;i++){
+        for(int j=0;j<flag-i;j++){
+            if(per[j].score<per[j+1].score){
+                struct Player temp = per[j];
+                per[j]=per[j+1];
+                per[j+1]=temp;
+            }
+        }
+    }
+
+    FILE *fp = fopen("leaderboard.txt","w+");
+    for(int i=0;i<flag+1;i++){
+        fprintf(fp,"\t\t%s\t\t%.1lf\n",per[i].name,per[i].score);
+    }
+    fclose(fp);
+}
+
+void printboard(){
+    char i;
+    FILE *fp = fopen("leaderboard.txt","r+");
+    printf("\n\n\n");
+    printf("\t\t  == leaderboard ==\n");
+    printf("\t\tName\t\tScore\n");
+    printf("\t\t=====================\n");
+
+    while(1){
+
+        i=fgetc(fp);
+        if(i==EOF)break;
+        putchar(i);
+    }
+    fclose(fp);
 }
