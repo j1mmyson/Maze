@@ -18,7 +18,7 @@ void start();
 int map2(struct Player p);//mola;
 int blindmaze(struct Player p);//1stage.exe
 void blindmap(char map[20][20]);//1stage map
-int two(struct Player p,struct Player p2);//2stage.exe
+int stage2(struct Player p,struct Player p2);//2stage.exe
 void main(){
     struct Player p,p2;
     
@@ -60,7 +60,7 @@ void main(){
     stage1=blindmaze(p);//blindmaze fin
     if(stage1==1)
         goto intro;
-    two(p,p2);//two 게임 끝
+    stage2(p,p2);//stage2 게임 끝
     bossstage=boss(p);
     if(bossstage==1)
         goto intro;
@@ -234,7 +234,7 @@ map[2][3]='#',map[2][16]='#',map[2][17]='#';
     map[16][8]='#',map[16][9]='#',map[16][11]='#',map[16][12]='#',map[16][13]='#',map[16][14]='#',map[16][16]='#';
     map[17][4]='#',map[17][6]='#',map[17][14]='#';
 };//블라인드메이즈 맵 완성
-int two(struct Player p,struct Player p2){//병욱이가 만든 게임
+int stage2(struct Player p,struct Player p2){//병욱이가 만든 게임
     char map[20][40];
     int i,j;
     char cmd;
@@ -400,7 +400,7 @@ int boss(struct Player p){
     }
     for(i=0;i<3;i++){
         if(map[rand()%36+2][rand()%38]!='#'&&map[rand()%36+2][rand()%38]!='M'){
-            map[rand()%36+2][rand()%38]='+';
+            map[rand()%36+2][rand()%38]='*';
         }
         else i--;
 
